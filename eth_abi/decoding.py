@@ -74,6 +74,7 @@ class ContextFramesBytesIO(io.BytesIO):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self._as_calldata = kwargs.get("_as_calldata", False)
         self._frames = []
         self._total_offset = 0
 
@@ -106,6 +107,13 @@ class ContextFramesBytesIO(io.BytesIO):
         self._total_offset -= offset
 
         self.seek(return_pos)
+
+    def read(self, size=None):
+        result = super().read(size)
+        if self._as_calldata and size is not None:
+            return result.ljust(size, b'\0')
+        else:
+            return result
 
 
 class BaseDecoder(BaseCoder, metaclass=abc.ABCMeta):
